@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep learning - DINOv3</title>
+  <link rel="stylesheet" href="/templates/index.css" />
+</head>
+<body>
+  <h1>DINOv3 Click-to-Similarity Heatmap</h1>
+  <p class="muted">Upload an image, then click on it to place a crosshair and compute similar feature regions.</p>
+
+  <div class="row">
+    <input id="fileInput" type="file" accept="image/*" />
+  </div>
+
+  <div class="row">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="row">
+    <strong>Status:</strong>
+    <div id="status">Idle</div>
+  </div>
+
+  <div class="row">
+    <strong>Selected pixel:</strong>
+    <div id="coords">-</div>
+  </div>
+
+  <div class="row">
+    <strong>Raw response:</strong>
+    <pre id="raw">-</pre>
+  </div>
+
+  <script src="/templates/index.js"></script>
+</body>
+</html>

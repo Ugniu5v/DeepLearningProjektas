@@ -1,0 +1,5 @@
+body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+.row { margin: 0.75rem 0; }
+.muted { color: #666; font-size: 0.95rem; }
+canvas { max-width: 100%; border: 1px solid #ddd; border-radius: 6px; cursor: crosshair; }
+pre { background: #f6f8fa; padding: 0.75rem; border-radius: 6px; overflow: auto; }
