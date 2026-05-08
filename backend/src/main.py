@@ -10,11 +10,20 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from PIL import Image, UnidentifiedImageError
 from transformers import AutoImageProcessor, AutoModel
+from dotenv import load_dotenv
 
 app = FastAPI()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+ok = load_dotenv(BASE_DIR / ".env", verbose=True)
+if not ok:
+    raise RuntimeError(f"Failed to load .env file from {BASE_DIR / '.env'}")
+
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-app.mount("/templates", StaticFiles(directory=str(BASE_DIR / "templates")), name="templates")
+app.mount(
+    "/templates", StaticFiles(directory=str(BASE_DIR / "templates")), name="templates"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,23 +32,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def read_root(request: Request):
     return templates.TemplateResponse(request, "index.html", {})
 
 
-
 MODEL_ID = os.getenv("DINO_MODEL_ID", "facebook/dinov3-vits16-pretrain-lvd1689m")
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-processor = AutoImageProcessor.from_pretrained(MODEL_ID)
-model = AutoModel.from_pretrained(MODEL_ID).to(DEVICE)
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+if not ACCESS_TOKEN:
+    raise RuntimeError(
+        "ACCESS_TOKEN environment variable is not set. Please set it to your Hugging Face API token."
+    )
+DEVICE = torch.device(
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps" if torch.backends.mps.is_available() else "cpu"
+)
+processor = AutoImageProcessor.from_pretrained(MODEL_ID, token=ACCESS_TOKEN)
+model = AutoModel.from_pretrained(MODEL_ID, token=ACCESS_TOKEN).to(DEVICE)
 model.eval()
 
 
 @app.post("/embed")
 async def embed_image(image: UploadFile = File(...)):
     if not image.content_type or not image.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Invalid file type. Expected image/*.")
+        raise HTTPException(
+            status_code=400, detail="Invalid file type. Expected image/*."
+        )
 
     try:
         image_bytes = await image.read()
@@ -61,9 +81,15 @@ async def embed_image(image: UploadFile = File(...)):
 
 
 @app.post("/analyze")
-async def analyze_image(image: UploadFile = File(...), x: float = Form(...), y: float = Form(...), ):
+async def analyze_image(
+    image: UploadFile = File(...),
+    x: float = Form(...),
+    y: float = Form(...),
+):
     if not image.content_type or not image.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Invalid file type. Expected image/*.")
+        raise HTTPException(
+            status_code=400, detail="Invalid file type. Expected image/*."
+        )
 
     try:
         image_bytes = await image.read()
@@ -72,7 +98,9 @@ async def analyze_image(image: UploadFile = File(...), x: float = Form(...), y: 
         raise HTTPException(status_code=400, detail="Unable to decode image file.")
 
     try:
-        inputs = processor(images=pil_image, return_tensors="pt", do_resize=False, do_center_crop=False)
+        inputs = processor(
+            images=pil_image, return_tensors="pt", do_resize=False, do_center_crop=False
+        )
         inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
 
         with torch.no_grad():
@@ -91,7 +119,9 @@ async def analyze_image(image: UploadFile = File(...), x: float = Form(...), y: 
 
         expected_tokens = grid_h * grid_w
         if expected_tokens <= 0 or patch_tokens.shape[0] < expected_tokens:
-            raise HTTPException(status_code=500, detail="Unexpected model output shape.")
+            raise HTTPException(
+                status_code=500, detail="Unexpected model output shape."
+            )
         patch_tokens = patch_tokens[:expected_tokens, :]
 
         patch_tokens = torch.nn.functional.normalize(patch_tokens, p=2, dim=-1)
@@ -124,7 +154,9 @@ async def analyze_image(image: UploadFile = File(...), x: float = Form(...), y: 
     except HTTPException:
         raise
     except Exception:
-        raise HTTPException(status_code=500, detail="Failed to run DINOv3 similarity analysis.")
+        raise HTTPException(
+            status_code=500, detail="Failed to run DINOv3 similarity analysis."
+        )
 
 
 if __name__ == "__main__":
