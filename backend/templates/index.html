@@ -1,36 +1,44 @@
 <!doctype html>
-<html lang="en">
+<html lang="lt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deep learning - DINOv3</title>
+  <title>DINOv3 – Maisto Klasifikatorius</title>
   <link rel="stylesheet" href="/templates/index.css" />
 </head>
 <body>
-  <h1>DINOv3 Click-to-Similarity Heatmap</h1>
-  <p class="muted">Upload an image, then click on it to place a crosshair and compute similar feature regions.</p>
-
-  <div class="row">
-    <input id="fileInput" type="file" accept="image/*" />
+  <div class="header">
+    <h1>Maisto klasifikatorius</h1>
+    <div class="meta">DINOv3 ViT-S/16 &middot; Food-101 &middot; {{ val_acc }}% validacijos tikslumas</div>
   </div>
 
-  <div class="row">
-    <canvas id="canvas"></canvas>
-  </div>
+  <div class="container">
+    <!-- Left: upload + preview -->
+    <div class="card">
+      <div class="card-title">Vaizdas</div>
+      <label for="fileInput" class="upload-btn">Pasirinkti nuotrauką</label>
+      <input id="fileInput" type="file" accept="image/*" />
+      <div class="preview-box" id="previewBox">
+        <span class="preview-hint">Nuotrauka čia</span>
+        <img id="preview" src="" alt="" />
+      </div>
+      <span class="status" id="status">Laukiama</span>
+    </div>
 
-  <div class="row">
-    <strong>Status:</strong>
-    <div id="status">Idle</div>
-  </div>
+    <!-- Right: results + model info -->
+    <div class="card">
+      <div class="card-title">Rezultatai</div>
+      <div id="placeholder" class="placeholder">Įkelkite nuotrauką</div>
+      <div id="results"></div>
 
-  <div class="row">
-    <strong>Selected pixel:</strong>
-    <div id="coords">-</div>
-  </div>
-
-  <div class="row">
-    <strong>Raw response:</strong>
-    <pre id="raw">-</pre>
+      <div class="card-title" style="margin-top: 1.75rem;">Modelis</div>
+      <div class="info-table">
+        <div class="info-row"><span class="k">Architektūra</span><span class="v">DINOv3 ViT-S/16</span></div>
+        <div class="info-row"><span class="k">Duomenų rinkinys</span><span class="v">Food-101</span></div>
+        <div class="info-row"><span class="k">Klasių skaičius</span><span class="v">101</span></div>
+        <div class="info-row"><span class="k">Tikslumas</span><span class="v">{{ val_acc }}%</span></div>
+      </div>
+    </div>
   </div>
 
   <script src="/templates/index.js"></script>
